@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ماسح IP"
+        android:text="IP Scanner"
         android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -18,7 +18,7 @@
         android:id="@+id/ipRangeEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="أدخل نطاق IP (مثال: 192.168.1.0/24)"
+        android:hint="Enter IP range (e.g., 192.168.1.0)"
         android:inputType="text"
         android:layout_marginBottom="10dp" />
 
@@ -26,7 +26,7 @@
         android:id="@+id/scanButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="بدء الفحص"
+        android:text="Start Scan"
         android:layout_marginBottom="20dp" />
 
     <ProgressBar
@@ -34,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        style="?android:attr/progressBarStyleHorizontal" />
+        style="@android:style/Widget.ProgressBar.Horizontal" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -45,7 +45,7 @@
             android:id="@+id/resultTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="النتائج ستظهر هنا..."
+            android:text="Results will appear here..."
             android:textSize="14sp"
             android:background="#f5f5f5"
             android:padding="10dp" />
