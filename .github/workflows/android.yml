@@ -14,6 +14,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Setup Gradle Wrapper
+      run: |
+        mkdir -p gradle/wrapper
+        # Download correct gradle-wrapper.jar
+        curl -L -o gradle/wrapper/gradle-wrapper.jar \
+          https://repo.maven.apache.org/maven2/gradle/wrapper/gradle-wrapper/8.2/gradle-wrapper-8.2.jar
+        
+        # Verify download
+        if [ -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "✅ gradle-wrapper.jar downloaded successfully"
+            ls -la gradle/wrapper/
+        else
+            echo "❌ Failed to download gradle-wrapper.jar"
+            exit 1
+        fi
+        
+        # Make gradlew executable
+        chmod +x gradlew
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -23,20 +42,30 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
-
-    - name: Build debug APK
+    - name: Validate Gradle Wrapper
       run: |
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew --version || echo "Gradle version check failed, but continuing..."
 
-    - name: List build outputs
+    - name: Build with Gradle
       run: |
-        find . -name "*.apk" -type f | head -10
+        ./gradlew tasks --all || echo "Continuing with build..."
+        ./gradlew assembleDebug --stacktrace
+
+    - name: Check APK file
+      run: |
+        find . -name "*.apk" -type f
+        if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "✅ APK built successfully"
+            ls -la app/build/outputs/apk/debug/
+        else
+            echo "❌ APK not found"
+            find . -name "build" -type d
+        fi
 
     - name: Upload APK
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ip-scanner-debug
+        name: ip-scanner-apk
         path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 5
+        retention-days: 7
