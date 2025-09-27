@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">IP Scanner</string>
-    <string name="scan_button">بدء الفحص</string>
-    <string name="ip_range_hint">أدخل نطاق IP</string>
+    <string name="scan_button">Start Scan</string>
+    <string name="ip_range_hint">Enter IP range</string>
 </resources>
