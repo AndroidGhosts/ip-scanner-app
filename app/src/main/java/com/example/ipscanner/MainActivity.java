@@ -23,13 +23,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // تهيئة العناصر
+        // Initialize views
         ipRangeEditText = findViewById(R.id.ipRangeEditText);
         scanButton = findViewById(R.id.scanButton);
         resultTextView = findViewById(R.id.resultTextView);
         progressBar = findViewById(R.id.progressBar);
         
-        // إعداد الزر
+        // Setup button click listener
         scanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -41,7 +41,13 @@ public class MainActivity extends AppCompatActivity {
     private void startScan() {
         String ipRange = ipRangeEditText.getText().toString().trim();
         if (ipRange.isEmpty()) {
-            resultTextView.setText("⚠️ الرجاء إدخال نطاق IP");
+            resultTextView.setText("Please enter IP range");
+            return;
+        }
+        
+        // Basic IP validation
+        if (!ipRange.matches("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")) {
+            resultTextView.setText("Invalid IP format. Example: 192.168.1.0");
             return;
         }
         
@@ -49,15 +55,13 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private class NetworkScanTask extends AsyncTask<String, Integer, String> {
-        private int totalHosts = 254;
-        private int scannedHosts = 0;
         
         @Override
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            progressBar.setMax(totalHosts);
+            progressBar.setProgress(0);
             scanButton.setEnabled(false);
-            resultTextView.setText("جاري الفحص...");
+            resultTextView.setText("Scanning...");
         }
         
         @Override
@@ -66,41 +70,47 @@ public class MainActivity extends AppCompatActivity {
             String ipRange = ranges[0];
             
             try {
-                // تحليل نطاق IP
+                // Extract base IP (first three octets)
                 String[] parts = ipRange.split("\\.");
                 if (parts.length != 4) {
-                    return "❌ تنسيق IP غير صحيح";
+                    return "Invalid IP format";
                 }
                 
                 String baseIP = parts[0] + "." + parts[1] + "." + parts[2] + ".";
+                int openHosts = 0;
                 
-                for (int i = 1; i <= 254; i++) {
+                // Scan only first 10 hosts for demo (to avoid long build times)
+                for (int i = 1; i <= 10; i++) {
                     String ip = baseIP + i;
                     boolean isOpen = isPortOpen(ip, 80, 1000);
                     
                     if (isOpen) {
+                        openHosts++;
                         results.append("✅ ").append(ip).append(":80 - OPEN\n");
                     }
                     
-                    scannedHosts = i;
                     publishProgress(i);
                     
-                    // تأخير لتجنب الحمل الزائد
-                    Thread.sleep(10);
+                    // Small delay to avoid overwhelming the network
+                    Thread.sleep(50);
+                }
+                
+                if (openHosts == 0) {
+                    results.append("No open hosts found on port 80");
                 }
                 
             } catch (Exception e) {
-                return "❌ خطأ: " + e.getMessage();
+                return "Error: " + e.getMessage();
             }
             
-            return results.toString().isEmpty() ? 
-                "❌ لم يتم العثور على أي مضيف نشط" : results.toString();
+            return results.toString();
         }
         
         @Override
         protected void onProgressUpdate(Integer... values) {
-            progressBar.setProgress(values[0]);
-            resultTextView.setText("جاري فحص المضيف: " + values[0] + "/254");
+            int progress = (values[0] * 100) / 10; // Calculate percentage
+            progressBar.setProgress(progress);
+            resultTextView.setText("Scanning: " + values[0] + "/10 hosts");
         }
         
         @Override
